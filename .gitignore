@@ -1,0 +1,33 @@
+# Compiled class files
+target/
+*.class
+
+# Maven build directory
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+.mvn/wrapper/maven-wrapper.properties
+
+# IntelliJ IDEA files
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+# Eclipse files
+.project
+.classpath
+.settings/
+
+# VS Code files
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+logs/
+*.log
+hs_err_pid*
+/bin/
