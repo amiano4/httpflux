@@ -3,20 +3,20 @@ package com.amiano4.httpflux;
 import java.util.ArrayList;
 
 @SuppressWarnings("serial")
-public class HttpFluxHeaders extends ArrayList<HttpFluxHeaders.Header> {
+public class HttpHeaders extends ArrayList<HttpHeaders.Header> {
 	// Constructor to initialize the base ArrayList
-	public HttpFluxHeaders() {
+	public HttpHeaders() {
 		super();
 	}
 
 	// Adds a new header to the list
-	public HttpFluxHeaders add(String name, String value) {
+	public HttpHeaders add(String name, String value) {
 		this.add(new Header(name, value)); // Uses the inherited add method from ArrayList
 		return this; // For method chaining
 	}
 
 	// Updates an existing header by name or adds a new one if not found
-	public HttpFluxHeaders update(String name, String value) {
+	public HttpHeaders update(String name, String value) {
 		for (Header header : this) {
 			if (header.getName().equalsIgnoreCase(name)) { // Case-insensitive header name comparison
 				header.setValue(value); // Update existing value

@@ -5,9 +5,9 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class HttpFluxClient {
+public class HttpService {
 	private static String baseUrl = "";
-	public static HttpFluxHeaders registeredHeaders = new HttpFluxHeaders();
+	public static HttpHeaders registeredHeaders = new HttpHeaders();
 
 	public static void setBaseUrl(String url) {
 		baseUrl = url;
@@ -21,8 +21,8 @@ public class HttpFluxClient {
 		return URI.create(baseUrl + url);
 	}
 
-	public static HttpResponse<String> get(String url, HttpFluxHeaders headers) throws Exception {
-		HttpFluxHeaders compiledHeaders = mergeHeaders(registeredHeaders, headers);
+	public static HttpResponse<String> get(String url, HttpHeaders headers) throws Exception {
+		HttpHeaders compiledHeaders = mergeHeaders(registeredHeaders, headers);
 		return sendGet(url, compiledHeaders);
 	}
 
@@ -30,9 +30,9 @@ public class HttpFluxClient {
 		return sendGet(url, registeredHeaders);
 	}
 
-	public static HttpResponse<String> post(String url, FormDataBuilder formData, HttpFluxHeaders headers)
+	public static HttpResponse<String> post(String url, FormDataBuilder formData, HttpHeaders headers)
 			throws Exception {
-		HttpFluxHeaders compiledHeaders = mergeHeaders(registeredHeaders, headers);
+		HttpHeaders compiledHeaders = mergeHeaders(registeredHeaders, headers);
 		return sendPost(url, formData, compiledHeaders);
 	}
 
@@ -40,7 +40,7 @@ public class HttpFluxClient {
 		return sendPost(url, formData, registeredHeaders);
 	}
 
-	private static HttpResponse<String> sendPost(String url, FormDataBuilder formData, HttpFluxHeaders headers)
+	private static HttpResponse<String> sendPost(String url, FormDataBuilder formData, HttpHeaders headers)
 			throws Exception {
 		checkBaseUrl(url);
 
@@ -49,7 +49,7 @@ public class HttpFluxClient {
 		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(createUrl(url));
 
 		if (headers.size() > 0) {
-			for (HttpFluxHeaders.Header h : headers) {
+			for (HttpHeaders.Header h : headers) {
 				requestBuilder.header(h.getName(), h.getValue());
 			}
 		}
@@ -69,7 +69,7 @@ public class HttpFluxClient {
 		}
 	}
 
-	private static HttpResponse<String> sendGet(String url, HttpFluxHeaders headers) throws Exception {
+	private static HttpResponse<String> sendGet(String url, HttpHeaders headers) throws Exception {
 		checkBaseUrl(url);
 
 		HttpClient client = HttpClient.newHttpClient();
@@ -77,7 +77,7 @@ public class HttpFluxClient {
 		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(createUrl(url));
 
 		if (headers.size() > 0) {
-			for (HttpFluxHeaders.Header h : headers) {
+			for (HttpHeaders.Header h : headers) {
 				requestBuilder.header(h.getName(), h.getValue());
 			}
 		}
@@ -104,16 +104,16 @@ public class HttpFluxClient {
 		return true;
 	}
 
-	public static HttpFluxHeaders mergeHeaders(HttpFluxHeaders h1, HttpFluxHeaders h2) {
-		HttpFluxHeaders merged = new HttpFluxHeaders();
+	public static HttpHeaders mergeHeaders(HttpHeaders h1, HttpHeaders h2) {
+		HttpHeaders merged = new HttpHeaders();
 
 		// Add all headers from h1 to merged
-		for (HttpFluxHeaders.Header header : h1) {
+		for (HttpHeaders.Header header : h1) {
 			merged.add(header.getName(), header.getValue());
 		}
 
 		// Add or update headers from h2 to merged
-		for (HttpFluxHeaders.Header header : h2) {
+		for (HttpHeaders.Header header : h2) {
 			merged.update(header.getName(), header.getValue());
 		}
 
