@@ -6,7 +6,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
 public class HttpService {
-	private static String baseUrl = "";
+	private static String baseUrl = null;
 	public static HttpHeaders registeredHeaders = new HttpHeaders();
 
 	public static void setBaseUrl(String url) {
@@ -18,7 +18,8 @@ public class HttpService {
 	}
 
 	public static URI createUrl(String url) {
-		return URI.create(baseUrl + url);
+		String fullUrl = (baseUrl == null ? "" : baseUrl) + url;
+		return URI.create(fullUrl);
 	}
 
 	public static HttpResponse<String> get(String url, HttpHeaders headers) throws Exception {
@@ -42,7 +43,6 @@ public class HttpService {
 
 	private static HttpResponse<String> sendPost(String url, FormDataBuilder formData, HttpHeaders headers)
 			throws Exception {
-		checkBaseUrl(url);
 
 		HttpClient client = HttpClient.newHttpClient();
 
@@ -70,8 +70,6 @@ public class HttpService {
 	}
 
 	private static HttpResponse<String> sendGet(String url, HttpHeaders headers) throws Exception {
-		checkBaseUrl(url);
-
 		HttpClient client = HttpClient.newHttpClient();
 
 		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(createUrl(url));
@@ -93,15 +91,6 @@ public class HttpService {
 		} catch (Exception e) {
 			throw e;
 		}
-	}
-
-	public static boolean checkBaseUrl(String url) throws Exception {
-//		if (baseUrl == null || baseUrl.isEmpty()) {
-//			throw new IllegalStateException(
-//					"Unable to proceed with the requested resource " + url + ". Base URL is missing!");
-//		}
-
-		return true;
 	}
 
 	public static HttpHeaders mergeHeaders(HttpHeaders h1, HttpHeaders h2) {
