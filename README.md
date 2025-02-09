@@ -20,6 +20,22 @@ HttpFlux is an **opinionated**, chainable, and lightweight HTTP client abstracti
 
 ## Usage
 
+1. **Download the JAR file**:
+   - Download the `.jar` file 
+
+2. **Add the JAR to Your Project**:
+   - For non-modular projects:
+     - Include the file in your project's **`lib/`** directory or wherever you store your JAR dependencies.
+     - Add it to your classpath
+   
+   - For **modular projects**:
+     - Simply add it to your module dependencies.
+     - In your `module-info.java`, add the following:
+       ```java
+       requires com.amiano4.httpflux;
+       ```
+     - This will make the `httpflux` library available to your module.
+
 ### Basic GET Request
 
 ```java
