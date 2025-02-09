@@ -49,12 +49,56 @@ HttpService.post("https://httpbin.org/post", formData)
     });
 ```
 
+### Using `registeredHeaders` for Automatic Header Inclusion
+
+If you need to include specific headers in all requests, you can use `HttpService.registeredHeaders` to set them globally:
+
+```java
+HttpService.registeredHeaders.add("Authorization", "Bearer your_token");
+HttpService.registeredHeaders.add("User-Agent", "HttpFlux/1.0");
+
+HttpService.get("https://httpbin.org/get")
+    .onSuccess(response -> System.out.println(response.body()));
+```
+
+Any headers added to `registeredHeaders` will automatically be included in every request.
+
+### Full Usage Example
+
+```java
+// Set base URL
+HttpService.setBaseUrl("https://httpbin.org");
+
+// Register global headers
+HttpService.registeredHeaders.add("Authorization", "Bearer sample_token");
+HttpService.registeredHeaders.add("User-Agent", "HttpFlux/1.0");
+
+// Prepare custom headers for a specific request
+HttpHeaders customHeaders = new HttpHeaders().add("Custom-Header", "CustomValue");
+
+// Prepare form data
+FormDataBuilder formData = new FormDataBuilder()
+    .append("username", "test_user")
+    .append("profile_picture", "avatar.jpg", "path/to/avatar.jpg");
+
+// Perform GET request
+HttpService.get("/get", customHeaders)
+    .onSuccess(response -> System.out.println("GET Response: " + response.body()))
+    .onError(error -> System.out.println("GET Error: " + error.getMessage()));
+
+// Perform POST request
+HttpService.post("/post", formData, customHeaders)
+    .onSuccess(response -> System.out.println("POST Response: " + response.body()))
+    .onError(error -> System.out.println("POST Error: " + error.getMessage()));
+```
+
 ## Available Methods in `HttpService`
 
 ### **Configuration Methods**
 - `setBaseUrl(String url)`: Sets the base URL for all requests.
 - `getBaseUrl() -> String`: Retrieves the current base URL.
 - `createUrl(String url) -> URI`: Constructs a full URL using the base URL if set.
+- `registeredHeaders`: A global `HttpHeaders` instance for automatically including headers in every request.
 
 ### **HTTP Methods**
 - `get(String url) -> HttpFlux`: Sends a GET request.
@@ -65,6 +109,22 @@ HttpService.post("https://httpbin.org/post", formData)
 
 ### **Helper Methods**
 - `sendHttpRequest(HttpClient client, HttpRequest request) -> HttpFlux`: Sends an HTTP request and processes the response.
+
+## Available Methods in `HttpHeaders`
+
+### **Header Management**
+- `add(String name, String value) -> HttpHeaders`: Adds a new header to the list.
+- `update(String name, String value) -> HttpHeaders`: Updates an existing header or adds a new one if not found.
+- `merge(HttpHeaders... headersList) -> HttpHeaders`: Merges multiple `HttpHeaders` instances into one.
+- `clear()`: Removes all headers from the list.
+- `toString() -> String`: Returns a string representation of all headers.
+
+### **Header Class**
+Each header is represented by an inner `HttpHeaders.Header` class:
+- `getName() -> String`: Retrieves the header name.
+- `getValue() -> String`: Retrieves the header value.
+- `setName(String name)`: Updates the header name.
+- `setValue(String value)`: Updates the header value.
 
 ## License
 
