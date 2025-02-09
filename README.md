@@ -21,7 +21,7 @@ HttpFlux is an **opinionated**, chainable, and lightweight HTTP client abstracti
 ## Usage
 
 1. **Download the JAR file**:
-   - Download the `.jar` file 
+   - Download the `.jar` file [here](https://github.com/amiano4/httpflux/releases/download/1.0/httpflux-1.0.jar)
 
 2. **Add the JAR to Your Project**:
    - For non-modular projects:
