@@ -1,5 +1,6 @@
 package com.amiano4.httpflux;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -22,90 +23,67 @@ public class HttpService {
 		return URI.create(fullUrl);
 	}
 
-	public static HttpResponse<String> get(String url, HttpHeaders headers) throws Exception {
-		HttpHeaders compiledHeaders = mergeHeaders(registeredHeaders, headers);
-		return sendGet(url, compiledHeaders);
+	public static HttpFlux post(String url) {
+		return post(url, new FormDataBuilder(), new HttpHeaders());
 	}
 
-	public static HttpResponse<String> get(String url) throws Exception {
-		return sendGet(url, registeredHeaders);
+	public static HttpFlux post(String url, FormDataBuilder formData) {
+		return post(url, formData, new HttpHeaders());
 	}
 
-	public static HttpResponse<String> post(String url, FormDataBuilder formData, HttpHeaders headers)
-			throws Exception {
-		HttpHeaders compiledHeaders = mergeHeaders(registeredHeaders, headers);
-		return sendPost(url, formData, compiledHeaders);
-	}
-
-	public static HttpResponse<String> post(String url, FormDataBuilder formData) throws Exception {
-		return sendPost(url, formData, registeredHeaders);
-	}
-
-	private static HttpResponse<String> sendPost(String url, FormDataBuilder formData, HttpHeaders headers)
-			throws Exception {
-
-		HttpClient client = HttpClient.newHttpClient();
-
+	public static HttpFlux post(String url, FormDataBuilder formData, HttpHeaders headers) {
 		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(createUrl(url));
 
-		if (headers.size() > 0) {
-			for (HttpHeaders.Header h : headers) {
-				requestBuilder.header(h.getName(), h.getValue());
-			}
+		// Include headers
+		for (HttpHeaders.Header h : HttpHeaders.merge(registeredHeaders, headers)) {
+			requestBuilder.header(h.getName(), h.getValue());
 		}
 
 		requestBuilder.header("Content-Type", "multipart/form-data; boundary=" + FormDataBuilder.SEPARATOR);
 
 		try {
 			requestBuilder.POST(HttpRequest.BodyPublishers.ofByteArray(formData.build().toByteArray()));
-
-			HttpRequest request = requestBuilder.build();
-
-			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-			return response;
 		} catch (Exception e) {
-			throw e;
+			return new HttpFlux(null, e); // Return early with error
 		}
+
+		return sendHttpRequest(HttpClient.newHttpClient(), requestBuilder.build());
 	}
 
-	private static HttpResponse<String> sendGet(String url, HttpHeaders headers) throws Exception {
-		HttpClient client = HttpClient.newHttpClient();
+	public static HttpFlux get(String url) {
+		return get(url, new HttpHeaders());
+	}
 
+	public static HttpFlux get(String url, HttpHeaders headers) {
 		HttpRequest.Builder requestBuilder = HttpRequest.newBuilder().uri(createUrl(url));
 
-		if (headers.size() > 0) {
-			for (HttpHeaders.Header h : headers) {
-				requestBuilder.header(h.getName(), h.getValue());
-			}
+		// Include headers
+		for (HttpHeaders.Header h : HttpHeaders.merge(registeredHeaders, headers)) {
+			requestBuilder.header(h.getName(), h.getValue());
 		}
 
-		requestBuilder.header("Content-Type", "application/json");
 		requestBuilder.GET();
 
-		HttpRequest request = requestBuilder.build();
+		return sendHttpRequest(HttpClient.newHttpClient(), requestBuilder.build());
+	}
+
+	public static HttpFlux sendHttpRequest(HttpClient client, HttpRequest request) {
+		HttpResponse<String> response = null;
+		Exception ex = null;
 
 		try {
-			HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-			return response;
-		} catch (Exception e) {
-			throw e;
+			response = client.send(request, HttpResponse.BodyHandlers.ofString());
+			if (response.statusCode() >= 400) {
+				ex = new HttpFlux.HttpFluxErrorException(response.body(), response);
+			}
+		} catch (IOException e) {
+			ex = new RuntimeException("Network error: " + e.getMessage(), e);
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			ex = new RuntimeException("Request was interrupted", e);
 		}
+
+		return new HttpFlux(response, ex);
 	}
 
-	public static HttpHeaders mergeHeaders(HttpHeaders h1, HttpHeaders h2) {
-		HttpHeaders merged = new HttpHeaders();
-
-		// Add all headers from h1 to merged
-		for (HttpHeaders.Header header : h1) {
-			merged.add(header.getName(), header.getValue());
-		}
-
-		// Add or update headers from h2 to merged
-		for (HttpHeaders.Header header : h2) {
-			merged.update(header.getName(), header.getValue());
-		}
-
-		return merged;
-	}
 }
