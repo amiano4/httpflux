@@ -16,8 +16,7 @@ public class FormDataBuilder {
 
 	public FormDataBuilder() {
 		this.data = new StringBuilder();
-		// Initialize with boundary
-		this.data.append("--").append(SEPARATOR);
+		this.data.append("--").append(SEPARATOR); // Initialize with boundary
 	}
 
 	// Append string form-data
@@ -81,6 +80,11 @@ public class FormDataBuilder {
 		return outputStream;
 	}
 
+	// Helper method to get content type of the file if needed
+	private String getContentType(Path path) throws Exception {
+		return Files.probeContentType(path); // This will get MIME type based on the file extension
+	}
+
 	private class FileData {
 		protected String name;
 		protected String key;
@@ -91,10 +95,5 @@ public class FormDataBuilder {
 			this.name = name;
 			this.path = path;
 		}
-	}
-
-	// Helper method to get content type of the file if needed
-	private String getContentType(Path path) throws Exception {
-		return Files.probeContentType(path); // This will get MIME type based on the file extension
 	}
 }
