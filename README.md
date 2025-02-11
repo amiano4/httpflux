@@ -1,33 +1,27 @@
-# HttpFlux
+# HttpService
 
-HttpFlux is an **opinionated**, chainable, and lightweight HTTP client abstraction for Java, designed to simplify HTTP requests while providing a clean and fluent API. It supports GET and POST requests, automatic header management, and built-in error handling.
+**HttpService** is a lightweight Java HTTP client abstraction built on `java.net.http.HttpClient`. It simplifies sending synchronous and asynchronous HTTP requests with built-in support for headers and form-data.
 
 ## Features
 
-- **Chainable API** for clean and readable code.
-- **Supports GET & POST requests** with proper multipart form-data handling.
-- **Automatic header management** with easy merging and updating.
-- **Built-in error handling** via exceptions and callbacks.
-- **Lightweight & dependency-free** (relies on Java's built-in HttpClient).
+- Supports **GET** and **POST** requests.
+- Handles both **synchronous** and **asynchronous** execution.
+- Allows **global headers** via `registeredHeaders`.
+- Provides **callback-based** success and error handling.
 
-## Installation
-
-### Maven
-
-```xml
-// not yet
-```
-
-## Usage
+## Usage & Installation
 
 1. **Download the JAR file**:
-   - Download the `.jar` file [here](https://github.com/amiano4/httpflux/releases/download/v1.0/httpflux-1.0.jar)
+
+   - Download the `.jar` file [here](https://github.com/amiano4/httpflux/releases/download/v1%2C1.0/httpflux-v1.1.0.jar)
 
 2. **Add the JAR to Your Project**:
+
    - For non-modular projects:
+
      - Include the file in your project's **`lib/`** directory or wherever you store your JAR dependencies.
      - Add it to your classpath
-   
+
    - For **modular projects**:
      - Simply add it to your module dependencies.
      - In your `module-info.java`, add the following:
@@ -36,116 +30,74 @@ HttpFlux is an **opinionated**, chainable, and lightweight HTTP client abstracti
        ```
      - This will make the `httpflux` library available to your module.
 
-### Basic GET Request
+### 1. Set Base URL (Optional)
 
 ```java
-HttpFlux httpFlux = HttpService.get("https://httpbin.org/get");
-httpFlux.onSuccess(...);
-httpFlux.onError(...);
-
-// or
-
-HttpService.get("https://httpbin.org/get")
-    .onSuccess(response -> System.out.println(response.body()))
-    .onError(error -> System.out.println("Error: " + error.getMessage()));
+HttpService.setBaseUrl("https://api.example.com");
 ```
 
-### Basic POST Request with Form Data
+### 2. Send a GET Request
 
 ```java
-FormDataBuilder formData = new FormDataBuilder()
-    .append("key", "value")
+HttpService.get("/users")
+    .onSuccess(response -> System.out.println(response.body()))
+    .onError(Throwable::printStackTrace)
+    .executeSync();
+```
+
+### 3. Send a POST Request with Form Data
+
+```java
+FormDataBuilder formData = new FormDataBuilder().add("name", "John Doe");
+
+HttpService.post("/submit", formData)
+    .onSuccess(response -> System.out.println(response.body()))
+    .onError(Throwable::printStackTrace)
+    .executeAsync();
+
+    // Thread.sleep(3000);
+```
+
+> **Note:** Be aware of asynchronous calls. The program might end while waiting for its response.
+
+### 4. Using Custom Headers
+
+```java
+HttpHeaders headers = new HttpHeaders().add("Authorization", "Bearer token")
     .append("fileKey", "example.txt", "path/to/example.txt");
 
-HttpService.post("https://httpbin.org/post", formData)
+HttpService.get("/secure-data", headers)
     .onSuccess(response -> System.out.println(response.body()))
-    .onError(error -> {
-      // use error.getResponse() to get the response object 
-      System.out.println("Error: " + error.getMessage());
-    });
+    .onError(Throwable::printStackTrace)
+    .executeSync();
 ```
 
-### Using `registeredHeaders` for Automatic Header Inclusion
+## Available Methods
 
-If you need to include specific headers in all requests, you can use `HttpService.registeredHeaders` to set them globally:
+### GET Requests
 
 ```java
-HttpService.registeredHeaders.add("Authorization", "Bearer your_token");
-HttpService.registeredHeaders.add("User-Agent", "HttpFlux/1.0");
-
-HttpService.get("https://httpbin.org/get")
-    .onSuccess(response -> System.out.println(response.body()));
+HttpService.get(String url);
+HttpService.get(URI url);
+HttpService.get(String url, HttpHeaders headers);
+HttpService.get(URI url, HttpHeaders headers);
 ```
 
-Any headers added to `registeredHeaders` will automatically be included in every request.
-
-### Full Usage Example
+### POST Requests
 
 ```java
-// Set base URL
-HttpService.setBaseUrl("https://httpbin.org");
-
-// Register global headers
-HttpService.registeredHeaders.add("Authorization", "Bearer sample_token");
-HttpService.registeredHeaders.add("User-Agent", "HttpFlux/1.0");
-
-// Prepare custom headers for a specific request
-HttpHeaders customHeaders = new HttpHeaders().add("Custom-Header", "CustomValue");
-
-// Prepare form data
-FormDataBuilder formData = new FormDataBuilder()
-    .append("username", "test_user")
-    .append("profile_picture", "avatar.jpg", "path/to/avatar.jpg");
-
-// Perform GET request
-HttpService.get("/get", customHeaders)
-    .onSuccess(response -> System.out.println("GET Response: " + response.body()))
-    .onError(error -> System.out.println("GET Error: " + error.getMessage()));
-
-// Perform POST request
-HttpService.post("/post", formData, customHeaders)
-    .onSuccess(response -> System.out.println("POST Response: " + response.body()))
-    .onError(error -> System.out.println("POST Error: " + error.getMessage()));
+HttpService.post(String url);
+HttpService.post(URI url);
+HttpService.post(String url, FormDataBuilder formData);
+HttpService.post(URI url, FormDataBuilder formData);
+HttpService.post(String url, FormDataBuilder formData, HttpHeaders headers);
+HttpService.post(URI url, FormDataBuilder formData, HttpHeaders headers);
 ```
-
-## Available Methods in `HttpService`
-
-### **Configuration Methods**
-- `setBaseUrl(String url)`: Sets the base URL for all requests.
-- `getBaseUrl() -> String`: Retrieves the current base URL.
-- `createUrl(String url) -> URI`: Constructs a full URL using the base URL if set.
-- `registeredHeaders`: A global `HttpHeaders` instance for automatically including headers in every request.
-
-### **HTTP Methods**
-- `get(String url) -> HttpFlux`: Sends a GET request.
-- `get(String url, HttpHeaders headers) -> HttpFlux`: Sends a GET request with custom headers.
-- `post(String url) -> HttpFlux`: Sends a POST request with an empty form body.
-- `post(String url, FormDataBuilder formData) -> HttpFlux`: Sends a POST request with form-data.
-- `post(String url, FormDataBuilder formData, HttpHeaders headers) -> HttpFlux`: Sends a POST request with form-data and custom headers.
-
-### **Helper Methods**
-- `sendHttpRequest(HttpClient client, HttpRequest request) -> HttpFlux`: Sends an HTTP request and processes the response.
-
-## Available Methods in `HttpHeaders`
-
-### **Header Management**
-- `add(String name, String value) -> HttpHeaders`: Adds a new header to the list.
-- `update(String name, String value) -> HttpHeaders`: Updates an existing header or adds a new one if not found.
-- `merge(HttpHeaders... headersList) -> HttpHeaders`: Merges multiple `HttpHeaders` instances into one.
-- `clear()`: Removes all headers from the list.
-- `toString() -> String`: Returns a string representation of all headers.
-
-### **Header Class**
-Each header is represented by an inner `HttpHeaders.Header` class:
-- `getName() -> String`: Retrieves the header name.
-- `getValue() -> String`: Retrieves the header value.
-- `setName(String name)`: Updates the header name.
-- `setValue(String value)`: Updates the header value.
 
 ## License
 
-HttpFlux is open-source and available under the MIT License.
+This project is open-source. Feel free to modify and use it in your projects.
 
-## Contributing
+## Developer Note
 
-Contributions are welcome! Feel free to open issues and submit pull requests.
+I've been too lazy to learn more Java features and badly wanted a straightforward approach to sending HTTP requests. So I created this library, hoping to solve the hassle.
