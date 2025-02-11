@@ -178,6 +178,11 @@ public class HttpService {
 			if (throwable != null) {
 				throw throwable;
 			}
+
+			if (response != null && response.statusCode() >= 400) {
+				throw new HttpErrorException("Error Status Code " + response.statusCode());
+			}
+
 			success.accept(response);
 		} catch (Throwable e) {
 			error.accept(new HttpErrorException(e, response));
@@ -208,7 +213,7 @@ public class HttpService {
 	 */
 	@FunctionalInterface
 	public static interface OnError {
-		void accept(Exception e);
+		void accept(HttpErrorException e);
 	}
 
 	/**
@@ -225,6 +230,11 @@ public class HttpService {
 
 		public HttpErrorException(Throwable e) {
 			super(e);
+			this.response = null;
+		}
+
+		public HttpErrorException(String message) {
+			super(message);
 			this.response = null;
 		}
 
