@@ -183,7 +183,9 @@ public class HttpService {
 				throw new HttpErrorException("Error Status Code " + response.statusCode());
 			}
 
-			success.accept(response);
+			if (success != null) {
+				success.accept(response);
+			}
 		} catch (Throwable e) {
 			error.accept(new HttpErrorException(e, response));
 		}
@@ -198,6 +200,15 @@ public class HttpService {
 	public static URI createUrl(String url) {
 		String fullUrl = (baseUrl == null ? "" : baseUrl) + url;
 		return URI.create(fullUrl);
+	}
+
+	/**
+	 * Sets base url
+	 * 
+	 * @param url
+	 */
+	public static void setBaseUrl(String url) {
+		baseUrl = url;
 	}
 
 	/**
